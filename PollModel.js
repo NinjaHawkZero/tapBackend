@@ -3,7 +3,8 @@ const { schoolModel} = require('./SchoolModels')
 
 
 //Connect To DB
-mongoose.connect("mongodb://localhost/tapin")
+mongoose.connect(process.env.DATABASE_URL, {useNewUrlParser: true})
+const db = mongoose.connection
 
 
 const pollSchema = new mongoose.Schema ({

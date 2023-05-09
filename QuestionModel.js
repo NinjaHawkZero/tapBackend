@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 
 //Connect To DB
-mongoose.connect("mongodb://localhost/tapin")
+mongoose.connect("mongodb://localhost/tapin2")
 
 
 const questionSchema = new mongoose.Schema ({

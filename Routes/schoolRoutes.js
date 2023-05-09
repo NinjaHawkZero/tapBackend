@@ -107,6 +107,7 @@ router.post('/login', async (req, res) => {
     try{
         let {adminName, password, schoolCode} = req.body;
 
+        console.log(schoolCode)
         //Find by schoolCode, then verify name and password
        let foundSchool = await schoolModel.find({schoolCode: schoolCode});
         console.log(foundSchool)
@@ -114,7 +115,7 @@ router.post('/login', async (req, res) => {
        if(foundSchool.length > 0) {
         let foundName = await schoolModel.find({adminName: adminName, schoolCode: schoolCode});
 
-        console.log(foundName)
+       
 
         if(foundName.length > 0) {
            
