@@ -623,7 +623,7 @@ router.get('/classDailyCompletion/:classID', async  (req, res, next) => {
        
 
         let dailyTapIns = await Promise.all( classOfStudents.map(async function(student) {
-            await tapInModel.find({student: student._id , date: getDateString()})
+            await tapInModel.find({student: student.studentID , date: getDateString()})
         }));
 
 
@@ -666,13 +666,15 @@ router.get('/allClassesDailyCompletion/:staffID', async (req, res) => {
         let firstClass = await classModel.find({staffID: foundStaffMember._id, hour: "firstHour"});
 
 
+        //Look at class/student table
 
-        let students = await studentModel.find({firstHour: firstClass[0]._id})
+
+        let students = await classStudentModel.find({classID: firstClass[0]._id})
 
 
 
      let dailyTapIns =  await Promise.all( students.map(async function (student) {
-        await tapInModel.find({student: student._id, date: getDateString()})
+        await tapInModel.find({student: student.studentID, date: getDateString()})
     }));
     
     let percentage =  100 * (dailyTapIns / (students.length - 1));
@@ -687,14 +689,14 @@ router.get('/allClassesDailyCompletion/:staffID', async (req, res) => {
 
 let secondClass = await classModel.find({staffID: foundStaffMember._id, hour: "secondHour"});
 
-let students2 = await studentModel.find({secondHour: secondClass[0]._id});
+let students2 = await classStudentModel.find({classID: secondClass[0]._id});
 
 
  let dailyTapIns2 = await Promise.all( students2.map(async function (student) {
-    await tapInModel.find({student: student._id, date: getDateString()})
+    await tapInModel.find({student: student.studentID, date: getDateString()})
 }));
 
-let percentage2 =  100 * (dailyTapIns2 / (students2.length - 1));
+let percentage2 =  100 * (dailyTapIns2 / students2.length );
 
 let obj2 = {percentage: percentage2, class: "secondHour"}
 
@@ -706,15 +708,15 @@ classPercentageArr.append(obj2);
 
 let thirdClass = await classModel.find({staffID: foundStaffMember._id, hour: "thirdHour"});
 
-let students3 = await studentModel.find({thirdHour: thirdClass[0]._id});
+let students3 = await classStudentModel.find({classID: thirdClass[0]._id});
 
 
 
 let dailyTapIns3 = await Promise.all( students3.map(async function (student) {
-await tapInModel.find({student: student._id, date: getDateString()})
+await tapInModel.find({student: student.studentID, date: getDateString()})
 }));
 
-let percentage3 =  100 * (dailyTapIns3 / (students3.length - 1));
+let percentage3 =  100 * (dailyTapIns3 / students3.length );
 
 let obj3 = {percentage:percentage3, class: "thirdHour"}
 
@@ -726,16 +728,16 @@ classPercentageArr.append(obj3);
 let fourthClass = await classModel.find({staffID: foundStaffMember._id, hour: "fourthHour"});
 
 
-let students4 = await studentModel.find({fourthHour: fourthClass[0]._id})
+let students4 = await classStudentModel.find({classID: fourthClass[0]._id})
 
 
 
 
-let dailyTapIns4 = students4.map(async function (student) {
-await tapInModel.find({student: student._id, date: getDateString()})
-});
+let dailyTapIns4 =  await Promise.all(students4.map(async function (student) {
+await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
-let percentage4 =  100 * (dailyTapIns4 / (students4.length - 1));
+let percentage4 =  100 * (dailyTapIns4 / students4.length);
 
 let obj4 = {percentage:percentage4, class: "fourthHour"}
 
@@ -749,16 +751,16 @@ classPercentageArr.append(obj4);
 let fifthClass = await classModel.find({staffID: foundStaffMember._id, hour: "fifthHour"});
 
 
-let students5 = await studentModel.find({fifthHour: fifthClass[0]._id});
+let students5 = await classStudentModel.find({classID: fifthClass[0]._id});
 
 
 
 
-let dailyTapIns5 = students5.map(async function (student) {
-await tapInModel.find({student: student._id, date: getDateString()})
-});
+let dailyTapIns5 = await Promise.all( students5.map(async function (student) {
+await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
-let percentage5 =  100 * (dailyTapIns5 / (students5.length - 1));
+let percentage5 =  100 * (dailyTapIns5 / students5.length );
 
 let obj5 = {percentage:percentage5, class: "fifthHour"}
 
@@ -772,14 +774,14 @@ let sixthClass = await classModel.find({staffID: foundStaffMember._id, hour: "si
 
 
 
-let students6 = await studentModel.find({sixthHour: sixthClass[0]._id});
+let students6 = await classStudentModel.find({classID: sixthClass[0]._id});
 
 
-let dailyTapIns6 = students6.map(async function (student) {
-await tapInModel.find({student: student._id, date: getDateString()})
-});
+let dailyTapIns6 = await Promise.all(students6.map(async function (student) {
+await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
-let percentage6 =  100 * (dailyTapIns6 / (students6.length - 1));
+let percentage6 =  100 * (dailyTapIns6 / students6.length );
 
 let obj6 = {percentage:percentage6, class: "sixthHour"}
 
@@ -791,17 +793,17 @@ classPercentageArr.append(obj6);
 let seventhClass = await classModel.find({staffID: foundStaffMember._id, hour: "seventhHour"});
 
 
-let students7 = await studentModel.find({seventhHour: seventhClass[0]._id});
+let students7 = await classStudentModel.find({classID: seventhClass[0]._id});
 
 
 
 
 
-let dailyTapIns7 = students7.map(async function (student) {
-await tapInModel.find({student: student._id, date: getDateString()})
-});
+let dailyTapIns7 = await Promise.all( students7.map(async function (student) {
+await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
-let percentage7 =  100 * (dailyTapIns7 / (students7.length - 1));
+let percentage7 =  100 * (dailyTapIns7 / students7.length);
 
 let obj7 = {percentage:percentage7, class: "seventhHour"}
 
@@ -816,17 +818,17 @@ classPercentageArr.append(obj7);
 let eigthClass = await classModel.find({staffID: foundStaffMember._id, hour: "eigthHour"});
 
 
-let students8 = await studentModel.find({eigthHour: eigthClass[0]._id});
+let students8 = await classStudentModel.find({classID: eigthClass[0]._id});
 
 
 
 
 
-let dailyTapIns8 = students8.map(async function (student) {
-await tapInModel.find({student: student._id, date: getDateString()})
-});
+let dailyTapIns8 =  await Promise.all(students8.map(async function (student) {
+await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
-let percentage8 =  100 * (dailyTapIns8 / (students8.length - 1));
+let percentage8 =  100 * (dailyTapIns8 / students8.length );
 
 let obj8 = {percentage: percentage8, class: "eigthHour"}
 
@@ -857,21 +859,26 @@ return res.status(201).json(classPercentageArr)
 
 
 
+
+
+
+
+
+
 //Get Last 5 Days completion percentage of TapIns for a class
-router.get('/classFiveDayCompletion', async (req, res) => {
+router.get('/classFiveDayCompletion/:classID', async (req, res) => {
 
 try{
     //First get all students for a teachers class, extract array of student obj id's from request body
     
-    let classResponse  = req.body;
+    let classID  = req.body.classID;
     
 
-    let response = await studentModel.find({})
+    let students = await classStudentModel.find({classID: classID});
+
     
     
-    let students = studentIDArr.map(async function (id) {
-        await studentModel.find({_id: id})
-    });
+   
 
     let datesArr = getLastFiveWeekdays();
 
@@ -879,12 +886,12 @@ try{
 
     datesArr.forEach(async function(date) {
 
-        let dailyTapIns = students.map(async function(student) {
-            await tapInModel.find({student: student._id, date: date})
-        })
+        let dailyTapIns = await Promise.all( students.map(async function(student) {
+            await tapInModel.find({student: student.studentID, date: date})
+        }))
 
 
-        let percentage = 100 * (dailyTapIns / (students.length - 1))
+        let percentage = 100 * (dailyTapIns / students.length)
 
         let obj = {date: date, percentage: percentage}
 
@@ -912,20 +919,20 @@ catch(err) {
 
 //Get daily results percentage of TapIns for a Class of students
 
-router.get('/classDailyResult', async (req, res) => {
+router.get('/classDailyResult/:classID', async (req, res) => {
     try{
 
-        let studentIDArr  = req.body;
+        let classID  = req.body.classID;
        
 
-        let students = studentIDArr.map(async function(id) {
-            await studentModel.find({_id: id})
-        });
+        let students = await classStudentModel.find({classID: classID})
+
+       
 
 
-        let dailyTapIns = students.map(async function(student) {
-            await tapInModel.find({student: student._id, date: getDateString()})
-        });
+        let dailyTapIns =  await Promise.all( students.map(async function(student) {
+            await tapInModel.find({student: student.studentID, date: getDateString()})
+        }));
 
 
         let totalTapQuestions = dailyTapIns * 3;
@@ -978,16 +985,14 @@ router.get('/allClassesDailyResult/:staffID', async (req, res) => {
         let classPercentageArr = [];
 
 
+        let firstClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "firstHour"});
 
 
-        let students = foundStaffMember.firstClass.map(async function(id) {
-            await studentModel.find({_id: id})
-        });
+        let students = await classStudentModel.find({classID: firstClass[0]._id})
 
-
-        let dailyTapIns = students.map(async function(student) {
-            await tapInModel.find({student: student._id, date: getDateString()})
-        });
+        let dailyTapIns =  await Promise.all( students.map(async function(student) {
+            await tapInModel.find({student: student.studentID, date: getDateString()})
+        }));
 
 
         let totalTapQuestions = dailyTapIns * 3;
@@ -1011,13 +1016,14 @@ router.get('/allClassesDailyResult/:staffID', async (req, res) => {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-        let students2ndClass = foundStaffMember.secondClass.map(async function(id) {
-            await studentModel.find({_id: id})
-        });
 
-        let dailyTapIns2ndClass = students2ndClass.map(async function(student) {
-            await tapInModel.find({student: student._id, date: getDateString()})
-        }) ;
+    let secondClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "secondHour"});
+
+        let students2 = await classStudentModel.find({classID: secondClass[0].studentID })
+
+        let dailyTapIns2ndClass =  await Promise.all(students2.map(async function(student) {
+            await tapInModel.find({student: student.studentID, date: getDateString()})
+        }) );
 
 
         let totalTapQuestions2ndClass = dailyTapIns2ndClass * 3;
@@ -1043,13 +1049,19 @@ router.get('/allClassesDailyResult/:staffID', async (req, res) => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-        let students3rdClass = foundStaffMember.thirdClass.map(async function(id) {
-            await studentModel.find({_id: id})
-        });
 
-        let dailyTapIns3rdClass = students3rdClass.map(async function(student) {
-            await tapInModel.find({student: student._id, date: getDateString()})
-        });
+let thirdClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "thirdHour"});
+
+let students3 = await classStudentModel.find({classID: thirdClass[0].studentID })
+
+
+
+
+
+
+        let dailyTapIns3rdClass = await Promise.all( students3.map(async function(student) {
+            await tapInModel.find({student: student.studentID, date: getDateString()})
+        }));
 
 
         let totalTapQuestions3rdClass = dailyTapIns3rdClass * 3;
@@ -1071,15 +1083,18 @@ router.get('/allClassesDailyResult/:staffID', async (req, res) => {
         classPercentageArr.append(obj3)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+let fourthClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "fourthHour"});
 
-let students4thClass = foundStaffMember.fourthClass.map(async function(id) {
-    await studentModel.find({_id: id})
-});
+let students4 = await classStudentModel.find({classID: fourthClass[0].studentID })
 
 
-let dailyTapIns4thClass = students4thClass.map(async function(student) {
-    await tapInModel.find({student: student._id, date: getDateString()})
-});
+
+
+
+
+let dailyTapIns4thClass = await Promise.all( students4.map(async function(student) {
+    await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
 
 let totalTapQuestions4thClass = dailyTapIns4thClass * 3;
@@ -1111,14 +1126,18 @@ classPercentageArr.append(obj4)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-let students5thClass = foundStaffMember.fifthClass.map(async function(id) {
-    await studentModel.find({_id: id})
-});
 
 
-let dailyTapIns5thClass = students5thClass.map(async function(student) {
-    await tapInModel.find({student: student._id, date: getDateString()})
-});
+let fifthClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "fifthHour"});
+
+let students5 = await classStudentModel.find({classID: fifthClass[0].studentID })
+
+
+
+
+let dailyTapIns5thClass = await Promise.all( students5.map(async function(student) {
+    await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
 let totalTapQuestions5thClass = dailyTapIns5thClass * 3;
 
@@ -1143,15 +1162,16 @@ classPercentageArr.append(obj5)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+let sixthClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "sixthHour"});
 
-let students6thClass = foundStaffMember.sixthClass.map(async function(id) {
-    await studentModel.find({_id: id})
-});
+let students6 = await classStudentModel.find({classID: sixthClass[0].studentID })
 
 
-let dailyTapIns6thClass = students6thClass.map(async function(student) {
-    await tapInModel.find({student: student._id, date: getDateString()})
-});
+
+
+let dailyTapIns6thClass = await Promise.all( students6.map(async function(student) {
+    await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
 
 let totalTapQuestions6thClass = dailyTapIns6thClass * 3;
@@ -1179,15 +1199,17 @@ classPercentageArr.append(obj6)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+let seventhClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "seventhHour"});
 
-let students7thClass = foundStaffMember.seventhClass.map(async function(id) {
-    await studentModel.find({_id: id})
-});
+let students7 = await classStudentModel.find({classID: seventhClass[0].studentID })
 
 
-let dailyTapIns7thClass = students7thClass.map(async function(student) {
-    await tapInModel.find({student: student._id, date: getDateString()})
-});
+
+
+
+let dailyTapIns7thClass = await Promise.all( students7.map(async function(student) {
+    await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
 
 
 let totalTapQuestions7thClass = dailyTapIns7thClass * 3;
@@ -1215,6 +1237,53 @@ classPercentageArr.append(obj7);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+
+
+
+
+
+
+let eigthClass = await classModel.find({staffID: foundStaffMember[0]._id, hour: "eigthHour"});
+
+let students8 = await classStudentModel.find({classID: eigthClass[0].studentID })
+
+
+
+
+
+let dailyTapIns8thClass = await Promise.all(students8.map(async function(student) {
+    await tapInModel.find({student: student.studentID, date: getDateString()})
+}));
+
+
+let totalTapQuestions8thClass = dailyTapIns7thClass * 3;
+
+
+let tapInTrueCounter8thClass = 0;
+
+
+
+for(let obj of dailyTapIns8thClass) {
+    if(obj.eating == true) {tapInTrueCounter8thClass++}
+    if(obj.sleeping == true) {tapInTrueCounter8thClass++}
+    if(obj.wellBeing == true) {tapInTrueCounter8thClass++}
+}
+
+
+
+let percentage8thClass = 100 * (tapInTrueCounter8thClass / totalTapQuestions8thClass);
+
+let obj8 = {percentage: percentage8thClass, class: "eigthClass"};
+
+classPercentageArr.append(obj8);
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 res.status(201).json(classPercentageArr)
 
 
@@ -1234,15 +1303,12 @@ res.status(201).json(classPercentageArr)
 
 
 
-router.get('classFiveDayResult', async (req, res) => {
+router.get('classFiveDayResult/:classID', async (req, res) => {
     try{
 
-        let studentIDArr = req.body;
+        let classID = req.params.classID;
 
-        let students = studentIDArr.map(async function(id) {
-            await studentModel.find({_id: id})
-        });
-
+        let students = await classStudentModel.find({classID: classID})
         let datesArr = getLastFiveWeekdays();
 
         let weekObj = [];
@@ -1253,11 +1319,11 @@ router.get('classFiveDayResult', async (req, res) => {
 
         datesArr.forEach(async function(date) {
 
-            let dailyTapIns = students.map(async function (student) {
+            let dailyTapIns = await Promise.all( students.map(async function (student) {
 
-                await tapInModel.find({student: student._id, date: date})
+                await tapInModel.find({student: student.studentID, date: date})
 
-            })
+            }))
 
 
             totalTapQuestions = dailyTapIns.length * 3;
@@ -1314,15 +1380,17 @@ router.get('classFiveDayResult', async (req, res) => {
 //HRT Routes
 //Get daily completion percentage of TapIns for HRT
 
-router.get('/hrtDailyCompletion', async (req, res) => {
+router.get('/hrtDailyCompletion/:staffID', async (req, res) => {
     try{
 
         //hrt is the name of the teacher
-        let hrt = req.body;
+        let hrt = req.params.staffID;
         let foundStudents = await studentModel.find({hrt: hrt});
-        let dailyTapIns = foundStudents.map(async function(student) {
+
+
+        let dailyTapIns = await Promise.all( foundStudents.map(async function(student) {
             await tapInModel.find({student: student._id, date: getDateString()})
-        });
+        }));
 
 
         let percentage = 100 * (dailyTapIns / foundStudents.length )
@@ -1344,11 +1412,11 @@ router.get('/hrtDailyCompletion', async (req, res) => {
 
 //Get Last 5 Days completion percentage for a HRT
 
-router.get('/hrtFiveDayCompletion', async (req, res) => {
+router.get('/hrtFiveDayCompletion/:staffID', async (req, res) => {
 
     try{
 
-        let hrt = req.body;
+        let hrt = req.params.staffID;
         //Pull array of students based on HRT
         let foundStudents = await studentModel.find({hrt: hrt});
         
@@ -1360,11 +1428,11 @@ router.get('/hrtFiveDayCompletion', async (req, res) => {
         datesArr.forEach(async function(date) {
 
 
-            let dailyTapIns = foundStudents.map(async function(student) {
+            let dailyTapIns = await Promise.all(foundStudents.map(async function(student) {
                 await tapInModel.find({student: student._id, date: date})
-            });
+            }));
 
-            let percentage = 100 * (dailyTapIns / (students.length - 1))
+            let percentage = 100 * (dailyTapIns / foundStudents.length)
 
             let obj = {date: date, percentage: percentage}
 
@@ -1394,13 +1462,13 @@ router.get('/hrtFiveDayCompletion', async (req, res) => {
 //Get daily results percentage of TapIns for HRT
 
 
-router.get('/hrtDailyResult', async(req, res) => {
+router.get('/hrtDailyResult/:staffID', async(req, res) => {
     try{
-        let studentRefObj = req.body;
+        let staffID = req.params.staffID;
 
-        let students = studentRefObj.map(async function(id) {
-            await studentModel.find({_id: id})
-        });
+        let students = await studentModel.find({hrt: staffID})
+
+       
 
         let dailyTapIns = students.map(async function(student) {
             await tapInModel.find({student: student._id, date: getDateString()})
@@ -1435,14 +1503,12 @@ router.get('/hrtDailyResult', async(req, res) => {
 //Get Last 5 Days results percentage of TapIns for HRT
 
 
-router.get('/hrtFiveDayResult', async (req, res) =>{
+router.get('/hrtFiveDayResult/:staffID', async (req, res) =>{
     try{
 
-        let studentRefObj = req.body;
+        let staffID = req.params.staffID;
 
-        let students = studentRefObj.map(async function(id) {
-            await studentModel.find({_id: id})
-        });
+       let students = await studentModel.find({hrt: staffID}) 
 
         let datesArr = getLastFiveWeekdays();
         let weekObj = [];
@@ -1491,7 +1557,7 @@ router.get('/hrtFiveDayResult', async (req, res) =>{
 
 
 
-
+////Fixes Start Here !!!!!!!!!!!!!!!!!!!!!!!!!
 
 //**************************************************************************************************************** */
 
@@ -1512,7 +1578,7 @@ router.get('/counselorDailyCompletion', async (req, res) => {
             await tapInModel.find({student: student._id, date: getDateString()})
         });
 
-        let percentage = 100 * (dailyTapIns / (foundStudents.length - 1));
+        let percentage = 100 * (dailyTapIns / foundStudents.length);
 
         res.status(201).json(percentage)
     }
@@ -1549,7 +1615,7 @@ router.get('/counselorFiveDayCompletion', async (req, res) => {
         });
 
 
-        let percentage = 100 * (dailyTapIns / (students.length - 1));
+        let percentage = 100 * (dailyTapIns / foundStudent.length);
 
         let obj = {date: date, percentage: percentage};
 
