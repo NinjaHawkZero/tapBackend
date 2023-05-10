@@ -117,21 +117,21 @@ function profit(prices) {
 
 
 
-const schoolRouter = require('./routes/schoolRoutes')
+const schoolRouter = require('./Routes/schoolRoutes')
 app.use('/schoolRoutes', schoolRouter)
 
-const staffRouter = require('./routes/staffRoutes')
+const staffRouter = require('./Routes/staffRoutes')
 app.use('/staffRoutes', staffRouter)
 
 
-const studentRouter = require('./routes/studentRoutes')
+const studentRouter = require('./Routes/studentRoutes')
 app.use('/studentRoutes', studentRouter)
 
-const tapInRouter = require('./routes/tapInRoutes')
+const tapInRouter = require('./Routes/tapInRoutes')
 app.use('/tapInRoutes', tapInRouter)
 
 
-const pollRouter = require('./routes/pollRoutes')
+const pollRouter = require('./Routes/pollRoutes')
 app.use('/pollRoutes', pollRouter)
 
 app.listen(PORT, process.env.IP, function() {
