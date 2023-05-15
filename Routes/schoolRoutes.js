@@ -14,42 +14,8 @@ const jwt = require("jsonwebtoken");
 
 
 
-//Getting All Schools
-router.get('/',  async (req, res) => {
 
- try{
-
-let foundSchools = await schoolModel.find()
-res.status(201).json(foundSchools)
-}
-catch(err)
-{
-    res.status(400).json({message: err.message})
-}
-
-});
-
-
-
-
-//Getting One School
-router.get('/:schoolCode', async (req, res) => {
-    
-    try{
-        
-        let foundSchool = await schoolModel.find({schoolCode: req.params.schoolCode})
-        res.status(201).json(foundSchool)
-        
-    }
-
-catch(err) {res.status(400).json({message: err.message})}
-});
-
-
-
-
-
-//Create/Register School/Admin
+//REGISTER SCHOOL/ADMIN
 router.post('/register', async (req, res) => {
 
     try {
@@ -101,65 +67,85 @@ catch(err) {res.status(400).json({message: err.message})}
 
 
 
-//Login School/Admin
+//LOGIN SCHOOL/ADMIN
 
 router.post('/login', async (req, res) => {
-    try{
-        let {adminName, password, schoolCode} = req.body;
+    try {
+        let { adminName, password, schoolCode } = req.body;
 
-        console.log(schoolCode)
-        //Find by schoolCode, then verify name and password
-       let foundSchool = await schoolModel.find({schoolCode: schoolCode});
-        console.log(foundSchool)
-
-       if(foundSchool.length > 0) {
-        let foundName = await schoolModel.find({adminName: adminName, schoolCode: schoolCode});
-
-       
-
-        if(foundName.length > 0) {
-           
-            let isValid = await bcrypt.compare(password, foundName[0].password)
-           
-            if(isValid === true) {
-                delete foundName[0].password;
-                //Returns school
-                let {schoolCode} = foundName[0];
-                let foundSchool = foundName[0];
-                let token = jwt.sign({schoolCode}, SECRET_KEY)
-                console.log(token)
-                console.log(foundSchool)
-                return res.json({token, foundSchool})
-
-            } else {throw new UnauthorizedError("Invalid username/password/schoolCode")}
-        } else {
-            throw new ExpressError(`Could not find admin with name ${adminName}`)
+        // Find by schoolCode and adminName
+        let foundSchool = await schoolModel.findOne({ schoolCode: schoolCode, adminName: adminName });
+        if (!foundSchool) {
+            throw new Error(`Could not find school with code ${schoolCode} or admin with name ${adminName}`);
         }
 
+        // Check if password is correct
+        let isValid = await bcrypt.compare(password, foundSchool.password);
 
+        if (!isValid) {
+            throw new Error("Invalid username/password/schoolCode");
+        }
 
-       } else {
-        throw new ExpressError(`Could not find school with code ${schoolCode}`)
-       }
+        // If password is correct, generate token and send response
+        delete foundSchool.password;
+        let token = jwt.sign({ schoolCode }, SECRET_KEY);
+        console.log(token);
+        console.log(foundSchool);
+        return res.json({ token, foundSchool });
+    } catch(err) {
+        res.status(400).json({ message: err.message });
     }
-
-    catch(err) {res.status(400).json({message: err.message})}
 });
 
 
-/////////////////////////////////////////////////////////////////////////////////////////
+
+//GETTING ALL SCHOOLS
+router.get('/',  async (req, res) => {
+
+ try{
+
+let foundSchools = await schoolModel.find()
+res.status(201).json(foundSchools)
+}
+catch(err)
+{
+    res.status(400).json({message: err.message})
+}
+
+});
 
 
 
 
+//GETTING ONE SCHOOL
+router.get('/:schoolCode', async (req, res) => {
+    
+    try{
+        
+        let foundSchool = await schoolModel.find({schoolCode: req.params.schoolCode})
+        let school = foundSchool[0]
+        res.status(201).json(school)
+        
+    }
+
+catch(err) {res.status(400).json({message: err.message})}
+});
+
+
+
+
+
+
+
+
+    
 
  
 
 
-///////////////////////////////////////////////////////////////////////////////
 
 
-//Updating one
+//UPDATING ONE
 router.patch('/:schoolCode', getSchool, async (req, res) => {
   
 
@@ -177,7 +163,7 @@ router.patch('/:schoolCode', getSchool, async (req, res) => {
 
 
 
-//Delete one
+//DELETE ONE
 router.delete('/:schoolCode', getSchool, async (req, res) => {
 try{
     await res.school.remove()
@@ -192,7 +178,7 @@ catch(err) {
 
 
 
-
+//SCHOOL MIDDLEWARE
 async function getSchool(req, res, next) {
     let school;
     try{

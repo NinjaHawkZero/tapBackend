@@ -22,8 +22,10 @@ router.get(`/allSchoolClasses/:schoolID`, async (req, res) => {
     
     
         let schoolID = req.params.schoolID
+        
         let foundClasses = await classModel.find({schoolID: schoolID})
-    
+       
+        
         if(foundClasses.length > 0) {
             res.status(201).json(foundClasses)
         } else {
@@ -105,4 +107,6 @@ catch(err)
 
 });
 
+
+module.exports = router
 

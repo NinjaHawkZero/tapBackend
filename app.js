@@ -134,6 +134,9 @@ app.use('/tapInRoutes', tapInRouter)
 const pollRouter = require('./Routes/pollRoutes')
 app.use('/pollRoutes', pollRouter)
 
+const classRouter = require('./Routes/classRoutes')
+app.use('/classRoutes', classRouter)
+
 app.listen(PORT, process.env.IP, function() {
     console.log("The tapIn server has started!")
 })

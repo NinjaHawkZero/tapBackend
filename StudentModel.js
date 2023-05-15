@@ -17,7 +17,8 @@ const studentSchema = new mongoose.Schema({
     passcode: String,
     schoolID: {type:mongoose.Schema.Types.ObjectId,
         ref:'School'},
-    grade: String
+    grade: String,
+    flagged: Boolean
 
       
      

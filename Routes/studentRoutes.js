@@ -11,41 +11,13 @@ const {classStudentModel} = require("../ClassStudent")
 const {classModel} = require("../ClassModel")
 
 
-//Getting All
-router.get('/getAllStudents/:schoolID', async (req, res) => {
-
-    try{
-        let foundStudents = await studentModel.find({schoolID: req.params.schoolID})
-        res.status(201).json(foundStudents)
-    }
-
-    catch(err) {res.status(400).json({message: err.message})}
-    
-    });
-    
 
 
 
 
-    
-    //Getting One
-router.get('/:_id',  async (req, res) => {
-
-        try{
-
-            let student = await studentModel.find({_id: req.params._id});
-            res.status(201).json(student)
-            
-        }
-
-        catch(err)
-   { res.status(400).json({message: err.message})}
-    });
-    
 
 
-//Register Student
-
+//REGISTER STUDENT FOR SCHOOL
 router.post('/register', async(req, res ) => {
 
     try{
@@ -81,7 +53,15 @@ router.post('/register', async(req, res ) => {
 });
 
 
-//Login Student
+
+
+
+
+
+
+
+
+//LOGIN STUDENT
 
 router.post('/login', async(req, res) => {
     try{
@@ -119,49 +99,56 @@ router.post('/login', async(req, res) => {
 
 
     
-    
-//Return Arrays of {teacherName: "dfdfd", classes: [{classObj}]} and an array of counselors
-
-router.get(`/onBoarding/:schoolID`, async (req, res) => {
-try{
-
-    let schoolID = req.params.schoolID;
-    let foundTeacherArr = await staffModel.find({_id: schoolID, title: "Teacher"});
-    let foundCounselorArr = await staffModel.find({_id: schoolID, title: "Counselor"});
-
-    if(foundTeacherArr.length > 0  && foundCounselorArr.length > 0) {
-
-        let teacherClassArr = [];
-
-        foundTeacherArr.forEach(async function(teacher)  {
-
-            let obj = {teacherName: "", classes:[]}
-
-            let teacherClasses = await classModel.find({staffID: teacher.staffID})
-
-            obj.classes = teacherClasses
-            obj.teacherName = teacher.name
-
-            teacherClassArr.push(obj)
-
-
-
-        });
 
 
 
 
-        res.status(201).json({teacherClassArr, foundCounselorArr})
+//CLASS ONBOARDING
+//CREATE CLASS, STUDENT, STAFF RELATIONSHIPS, WITH CLASS ONBOARDING PAGE DATA
+
+router.post(`/onboarding/:schoolID`, async (req, res) => {
+    try {
+        let studentID = req.body.studentID;
+        let hours = ["firstHour", "secondHour", "thirdHour", "fourthHour", "fifthHour", "sixthHour", "seventhHour", "eighthHour"];
+        
+        // Helper function to create classStudentModel
+        const createClassStudentModel = async (hour, bodyHour) => {
+            if (req.body[bodyHour].length > 0) {
+                let hourStaff = req.body[bodyHour][0];
+                let classID = await classModel.find({staffID: hourStaff._id, hour: hour});
+                if (classID.length > 0) {
+                    let classStudentObj = await classStudentModel.create({classID: classID[0]._id, studentID: studentID, staffID: hourStaff._id});
+                    await classStudentObj.save();
+                } else {
+                    throw new Error(`Could not find class with staffID ${hourStaff._id} and hour ${hour}`);
+                }
+            }
+        }
+
+        // Iterate over hours and create classStudentModel for each hour
+        for (let i = 0; i < hours.length; i++) {
+            await createClassStudentModel(hours[i], hours[i]);
+        }
+        
+        // Find the student once and reuse it
+        let foundStudent = await studentModel.findOne({_id: studentID});
+        if (!foundStudent) {
+            throw new Error(`Could not find student with ID ${studentID}`);
+        }
+
+        // Update the student's HRT and counselor
+        if (req.body.selectedHRT.length > 0) {
+            foundStudent.hrt = req.body.selectedHRT[0]._id;
+        }
+        if (req.body.selectedCounselor.length > 0) {
+            foundStudent.counselor = req.body.selectedCounselor[0]._id;
+        }
+        await foundStudent.save();
+        
+        res.status(201).json({student: foundStudent});
+    } catch(err) {
+        res.status(400).json({message: err.message});
     }
- else {
-    throw new ExpressError("Could not retrieve Staff for school")
- }
-
-}
-catch(err) {
-    res.status(400).json({message: err.message})
-}
-
 });
 
 
@@ -169,38 +156,38 @@ catch(err) {
 
 
 
-//Class Onboarding
-//Create class, student, teacher relationships, on class onboarding page for students
-router.post(`/onboarding/:schoolID`, async (req, res) =>{
+//GETTING ALL STUDENTS FOR A SCHOOL
+router.get('/getAllStudents/:schoolID', async (req, res) => {
 
-    try
-    {
-
-    //Body should also contain HRT and Counselor variables to set on the student
-    let classStudentArr = req.body.classStudentArr;
-    let HRT = req.body.HRT;
-    let Counselor = req.body.counselor;
-
-    //TODO: Look up student and add teacher and counselor to student, save student
-    
-
-    //Create Class/Student/Staff relationship
-    classStudentArr.forEach( async function(obj) {
-    
-        let relationship = await classStudentModel.create(obj)
-    
-        await relationship.save()
-    
-    });
-    
-    
-    
+    try{
+        let foundStudents = await studentModel.find({schoolID: req.params.schoolID})
+        res.status(201).json(foundStudents)
     }
-    
-    catch(err)
-    {}
+
+    catch(err) {res.status(400).json({message: err.message})}
     
     });
+    
+
+
+
+
+//GETTING ONE STUDENT 
+router.get('/:_id',  async (req, res) => {
+
+        try{
+
+            let student = await studentModel.find({_id: req.params._id});
+            let member = student[0]
+            res.status(201).json(member)
+            
+        }
+
+        catch(err)
+   { res.status(400).json({message: err.message})}
+    });
+    
+
 
 
 
@@ -209,7 +196,12 @@ router.post(`/onboarding/:schoolID`, async (req, res) =>{
 
 
     
-    //Updating one
+
+
+
+
+    
+//UPDATING ONE
     router.patch('/:_id', getStudent, async (req, res) => {
     
     
@@ -230,7 +222,7 @@ router.post(`/onboarding/:schoolID`, async (req, res) =>{
 
 
     
-    //Delete one
+//DELETE ONE
     router.delete('/:_id', getStudent, async (req, res) => {
 
         try{
@@ -249,7 +241,7 @@ router.post(`/onboarding/:schoolID`, async (req, res) =>{
 
 
 
-
+//STUDENT MIDDLEWARE
     async function getStudent(req, res, next) {
         let student;
 
