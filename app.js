@@ -38,23 +38,7 @@ app.use(express.json())
 
    
 
-function profit(prices) {
-    let max_profit = -1000
-    let min_price = prices[0]
-    for(let val of prices) {
-        if (val < min_price ){
-            min_price = val
-        } else
-        {
-            profit = val - min_price
-            if(profit > max_profit) {
-                max_profit = profit
-            }
-        }
-    }
 
-    return max_profit
-}
     
 
 

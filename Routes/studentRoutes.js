@@ -34,7 +34,7 @@ router.post('/register', async(req, res ) => {
         if(foundSchool.length > 0) {
             //Create student, add to db
             let school = foundSchool[0]._id
-            let createdStudent = await studentModel.create({name:name, email: email,  passcode: passcode, schoolID: school, grade: grade})
+            let createdStudent = await studentModel.create({name:name, email: email,  passcode: passcode, schoolID: school, grade: grade, flagged: false})
             const savedStudent = await createdStudent.save()
 
             console.log(`the saved student is ${savedStudent}`)
@@ -168,6 +168,28 @@ router.get('/getAllStudents/:schoolID', async (req, res) => {
     
     });
     
+
+
+
+
+//UPDATES STUDENTS REVIEWED
+//TAKES ARRAY OF STUDENTS REVIEWED, RETURNS SUCCESS MESSAGE
+router.post('/studentsReviewed', async (req, res) => {
+    try {
+      const studentReviews = req.body.studentReview;
+  
+      const studentPromises = studentReviews.map(async (student) => {
+        await studentModel.findByIdAndUpdate(student._id, student);
+      });
+  
+      await Promise.all(studentPromises);
+  
+      res.status(200).json({ message: "You submitted your reviews!" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
 
 
 

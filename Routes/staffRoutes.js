@@ -12,6 +12,55 @@ const { classModel} = require("../ClassModel")
 
 
 //REGISTER STAFF MEMBER, IF TEACHER, GENERATES EIGHT CLASSES FOR TEACHER
+// router.post('/register', async (req,res) => {
+//     try{
+//         let {schoolCode, name, title, password, email} = req.body;
+//         let foundSchool = await schoolModel.find({schoolCode: schoolCode});
+//         let foundStaff = await staffModel.find({email: email});
+
+
+        
+
+//         if(foundSchool.length > 0) {
+//             if(foundStaff.length > 0) {
+//                 console.log(foundStaff[0])
+//                 throw new Error(`This email is already in use`);
+//             }
+//             else {
+//                 let schoolID = foundSchool[0]._id;
+//                 const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
+//                 let newStaffMember = await staffModel.create({schoolID: schoolID, schoolCode: schoolCode, name: name, password: hashedPassword, title: title, email: email });
+
+//                 if(newStaffMember.title.toLowerCase() === "teacher") {
+//                     try {
+//                         let classes = ["firstHour", "secondHour", "thirdHour", "fourthHour", "fifthHour", "sixthHour", "seventhHour", "eighthHour"];
+//                         for(let i=0; i<8; i++) {
+//                             let newClass = await classModel.create({staffID: newStaffMember._id, schoolID: newStaffMember.schoolID, className: `Class ${i+1}`, hour: classes[i]});
+//                             await newClass.save();
+//                         }
+//                     } catch(err) {
+//                         res.status(400).json({message: "Could not make classes"});
+//                     }
+//                 }
+
+//                 const savedStaffMember = await newStaffMember.save();
+//                 console.log(savedStaffMember)
+//                 const token = jwt.sign(savedStaffMember._id, SECRET_KEY);
+//                 res.status(201).json({savedStaffMember, token});
+//             }
+//         }
+//         else {
+//             throw new Error(`Could not find school with SchoolCode ${schoolCode}`);
+//         }
+//     }
+//     catch(err) {
+//         res.status(400).json({message: err.message});
+//     }
+// });
+
+
+
+
 router.post('/register', async (req,res) => {
     try{
         let {schoolCode, name, title, password, email} = req.body;
@@ -20,6 +69,7 @@ router.post('/register', async (req,res) => {
 
         if(foundSchool.length > 0) {
             if(foundStaff.length > 0) {
+                console.log(foundStaff[0])
                 throw new Error(`This email is already in use`);
             }
             else {
@@ -32,15 +82,14 @@ router.post('/register', async (req,res) => {
                         let classes = ["firstHour", "secondHour", "thirdHour", "fourthHour", "fifthHour", "sixthHour", "seventhHour", "eighthHour"];
                         for(let i=0; i<8; i++) {
                             let newClass = await classModel.create({staffID: newStaffMember._id, schoolID: newStaffMember.schoolID, className: `Class ${i+1}`, hour: classes[i]});
-                            await newClass.save();
                         }
                     } catch(err) {
                         res.status(400).json({message: "Could not make classes"});
                     }
                 }
-                const savedStaffMember = await newStaffMember.save();
-                const token = jwt.sign(savedStaffMember._id, SECRET_KEY);
-                res.status(201).json({savedStaffMember, token});
+                
+                const token = jwt.sign({ _id: newStaffMember._id }, SECRET_KEY);
+                res.status(201).json({staffMember: newStaffMember, token});
             }
         }
         else {
@@ -51,10 +100,6 @@ router.post('/register', async (req,res) => {
         res.status(400).json({message: err.message});
     }
 });
-
-
-
-
 
 
 

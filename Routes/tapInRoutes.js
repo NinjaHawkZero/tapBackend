@@ -9,14 +9,14 @@ const {studentModel} = require("../StudentModel")
 const { staffModel } = require('../StaffModel')
 const { classStudentModel } = require('../ClassStudent');
 const { classModel } = require('../ClassModel');
+const {requestChatModel} = require('../chatModel')
 
 
-
-    //TapIn Model
+    // TapIn Model
 
     // student: {type:mongoose.Schema.Types.ObjectId,
     //     ref:'Student'},
-    //Date Format "yyyyMMdd"
+    // Date Format "yyyyMMdd"
     // date: String,
     // reviewedBy: String,
     // flagged: Boolean,
@@ -51,18 +51,22 @@ const { classModel } = require('../ClassModel');
             
 
             let tapIn = req.body
-            tapIn.date = getDateString()
-            let student = tapIn.studentID
+           
+
+            console.log(tapIn)
+            let student = tapIn.student
 
            let foundTap = await tapInModel.find({student: student, date: getDateString()})
 
+            console.log(foundTap.length)
 
            if(foundTap.length < 2) {
 
 
-            let createdTapIn = await tapInModel.create(tapIn)
-            let savedTapIn = await createdTapIn.save()
 
+            let createdTapIn = await tapInModel.create({student: student, wellBeing: tapIn.wellBeing, eating: tapIn.eating, sleeping: tapIn.sleeping,  date: getDateString()})
+            let savedTapIn = await createdTapIn.save()
+            console.log(savedTapIn)
             res.status(201).json(savedTapIn)
 
            } else {
@@ -82,6 +86,28 @@ const { classModel } = require('../ClassModel');
     });
     
     
+
+
+    //GET ALL TAPINS FOR A SINGLE STUDENT
+    router.get('/getAllTapInsStudent/:studentID', async (req, res) => {
+
+try
+{
+
+    let studentID = req.params.studentID;
+
+    let tapIns = await tapInModel.find({student:studentID})
+
+    res.status(200).json({tapIns: tapIns})
+}
+
+
+catch(err)
+{res.status(500).json({message: err.message})}
+
+    })
+
+
 
 //UPDATING ONE
     router.patch('/:id', getTapIn, async (req, res) => {
@@ -289,6 +315,7 @@ router.get('/studentTriggers1/:staffID', async (req, res) => {
 
         let foundStudentsPromises = classStudentObjs.map(async function(obj) {
             let retrievedStudent = await studentModel.find({_id: obj.studentID});
+            
             return retrievedStudent[0];
         });
 
@@ -311,6 +338,7 @@ router.get('/studentTriggers1/:staffID', async (req, res) => {
             await Promise.all(tapInPromises);
 
             if(tapInCounter >= 3) {
+                student.flagged = true;
                 return student;
             }
         });
@@ -365,6 +393,7 @@ router.get('/studentTriggers2/:staffID', async (req, res) => {
             await Promise.all(tapInPromises);
 
             if(tapInCounter <= 4) {
+                student.flagged = true
                 return student;
             }
         });
@@ -417,6 +446,7 @@ router.get('/studentTriggers3/:staffID', async (req, res) => {
             await Promise.all(tapInPromises);
 
             if(tapInCounter >= 3) {
+                student.flagged = true;
                 return student;
             }
         });
@@ -460,6 +490,7 @@ router.get('/studentTriggers4/:staffID', async (req, res) => {
             });
 
             if(tapInCounter >= 2) {
+                student.flagged = true
                 return student;
             }
         });
@@ -1186,9 +1217,111 @@ router.get('/counselorFiveDayResult/:staffID', async(req, res) => {
 
 
 
+////*******************REQUEST A CHAT ROUTES **********************************/
+
+//One route from the student to schedule with staff.  Post request.
+
+
+router.post('/requestChat/:studentID', async (req, res) => {
+
+    try
+    {
+        let studentID = req.body.studentID;
+        let staffID = req.body.staffID;
+    
+        let meeting = await requestChatModel.create({studentID: studentID, staffID: staffID, didMeet: false, meetDate: " "});
+
+        await meeting.save()
+
+
+        res.status(201).json({success: "You made the meeting!", meetingObj: meeting})
+    }
+
+catch(err)
+{res.status(500).json({message: err.message})}
+});
 
 
 
+
+//One route  to mark that they met and assign a date to it.  Post request.
+
+router.post('/madeChat/:staffID', async (req, res) => {
+
+try {
+
+    let staffID = req.body.staffID
+    let studentID = req.body.studentID
+
+    let foundMeet = await requestChatModel.find({staffID: staffID, studentID: studentID, didMeet: false, });
+
+    if(foundMeet.length > 0) {
+
+        foundMeet[0].didMeet = true;
+        foundMeet[0].meetDate = getDateString();
+
+      let meet = await  foundMeet[0].save()
+
+       res.status(201).json({meeting: meet})
+    }
+
+
+
+}
+
+catch(err)
+{res.status(500).json({message: err.message})}
+
+
+} );
+
+
+//One route to retrieve all students requesting a chat for a staff member.  Get request.
+
+router.get('/studentRequests/:staffID', async (req, res) => {
+
+    try
+    {
+        let staffID = req.params.staffID;
+        
+        let foundStudents = await requestChatModel.find({staffID: staffID})
+
+       let review = await Promise.all(foundStudents.map(student => 
+        studentModel.find({_id: student._id})));
+
+        let flattened = review.flat()
+
+        res.status(200).json({requestedChat: flattened})
+
+
+
+    }
+
+    catch(err)
+    {res.status(500).json({message: err.message})}
+})
+
+
+
+
+
+
+
+router.get('/counselorDailyCompletion/:staffID', async (req, res) => {
+    try{
+        let counselor = req.params.staffID;
+        let foundStudents = await studentModel.find({counselor: counselor});
+        let dailyTapIns = await Promise.all(foundStudents.map(student => 
+            tapInModel.find({student: student._id, date: getDateString()})
+        ));
+
+        let percentage = 100 * (dailyTapIns.length / foundStudents.length);
+
+        res.status(200).json(percentage);
+    } catch(err) {
+        return res.status(500).json({message: err.message});
+    }
+});
 
 
 
