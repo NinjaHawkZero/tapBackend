@@ -15,10 +15,14 @@ const studentSchema = new mongoose.Schema({
     email: String,
     counselor: {type: mongoose.Schema.Types.ObjectId, ref: 'Staff'},
     passcode: String,
+    googleId: String,
     schoolID: {type:mongoose.Schema.Types.ObjectId,
         ref:'School'},
     grade: String,
-    flagged: Boolean
+    flagged: Boolean,
+    didEatFlag: String,
+    didSleepFlag: String,
+    wellBeingFlag: String
 
       
      

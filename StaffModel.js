@@ -18,6 +18,7 @@ const staffSchema = new mongoose.Schema({
     name: String,
     email: String,
     password: String,
+    googleId: String,
     title: String,
     
     //Classes are an array of student ids for the students in each class

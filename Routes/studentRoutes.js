@@ -8,7 +8,8 @@ const {studentModel} = require("../StudentModel")
 const {schoolModel} = require("../SchoolModels")
 const {staffModel} = require("../StaffModel")
 const {classStudentModel} = require("../ClassStudent")
-const {classModel} = require("../ClassModel")
+const {classModel} = require("../ClassModel");
+const e = require('express');
 
 
 
@@ -22,33 +23,67 @@ router.post('/register', async(req, res ) => {
 
     try{
         //Also need hrt and counselor
-        let {name,  email,  passcode, schoolCode, grade} = req.body;
-        let foundStudent = await studentModel.find({email: email});
-        let foundSchool = await schoolModel.find({schoolCode: schoolCode})
+        let {name,  email,  passcode, schoolCode, grade, googleId} = req.body;
+        let storedGoogleID = googleId;
+        let storedEmail = email;
+        let storedPasscode = passcode;
+
+
+        //Try to find school for user
+        let foundSchool = await schoolModel.find({schoolCode: schoolCode});
+        //let foundStudent = await studentModel.find({email: email});
         
-
-        if(foundStudent.length > 0) {
-            throw new ExpressError(`This email is already in use`)
-        } 
-
+        //If school is present
         if(foundSchool.length > 0) {
-            //Create student, add to db
-            let school = foundSchool[0]._id
-            let createdStudent = await studentModel.create({name:name, email: email,  passcode: passcode, schoolID: school, grade: grade, flagged: false})
-            const savedStudent = await createdStudent.save()
-
-            console.log(`the saved student is ${savedStudent}`)
-
-            const token = jwt.sign(email, SECRET_KEY)
-
-            res.status(201).json({savedStudent, token})
 
 
-        } else {
-            throw new ExpressError(`An account for schoolCode ${schoolCode} does not exist`)
-        }
+
+
+            //Check if GoogleID exists
+
+            if(storedGoogleID != null || storedGoogleID != undefined)
+
+
+            {
+                let school = foundSchool[0]._id
+                let createdStudent = await studentModel.create({name: name, schoolID: school, grade: grade, googleId: storedGoogleID, flagged: false, didEatFlag: "", didSleepFlag: "", wellBeingFlag: ""})
+                const savedStudent = await createdStudent.save()
+    
+                console.log(`the saved student is ${savedStudent}`)
+    
+                const token = jwt.sign(savedStudent.googleId, SECRET_KEY)
+    
+                res.status(201).json({savedStudent, token})
+
+
+            } else if ((storedEmail != null  && storedPasscode != null) || (storedEmail != undefined && storedPasscode != undefined  )) {
+                
+                let school = foundSchool[0]._id
+                let createdStudent = await studentModel.create({name:name, email: email,  passcode: passcode, schoolID: school, grade: grade, flagged: false, didEatFlag: "", didSleepFlag: "", wellBeingFlag: ""})
+                const savedStudent = await createdStudent.save()
+    
+                console.log(`the saved student is ${savedStudent}`)
+    
+                const token = jwt.sign(email, SECRET_KEY)
+    
+                res.status(201).json({savedStudent, token})
+
+            } else {
+
+                throw new ExpressError(`Could not register Student`)
+            }
+
+
+            } 
+            
+            else 
+            
+            {
+                throw new ExpressError(`Could not find School for code ${schoolCode} `)
+            }
 
     }
+
     catch(err) {res.status(400).json({message: err.message})}
 });
 
@@ -65,26 +100,97 @@ router.post('/register', async(req, res ) => {
 
 router.post('/login', async(req, res) => {
     try{
-        let{email, passcode} = req.body;
-        let foundStudent = await studentModel.find({email:email});
+        let{email, passcode, googleId} = req.body;
+        let storedGoogleID = googleId;
+        let storedEmail = email;
+        let storedPasscode = passcode;
+       
 
-        if(foundStudent.length > 0) {
 
-            if(foundStudent[0].passcode === passcode) {
-                let email = foundStudent.email;
-                let token = jwt.sign({email}, SECRET_KEY)
-                console.log(token)
-                console.log(foundStudent)
-                return res.json({token, foundStudent})
+        //If googleID exists
+
+        if (storedGoogleID != null || storedGoogleID != undefined)  
+            
+         try {
+            //find in DB
+            let foundGoogleStudent = await studentModel.find({googleId: storedGoogleID})
+
+
+            //if found in DB
+            if(foundGoogleStudent.length > 0) { 
+
+                if(foundGoogleStudent[0].googleId === storedGoogleID) {
+
+                    let id = foundGoogleStudent[0].googleId;
+                    let token = jwt.sign({id}, SECRET_KEY);
+                    console.log(`this is the googletoken ${token}`)
+                    console.log('this is the google user')
+                    res.status(200).json({token,foundGoogleStudent })
+
+
+                } else {
+                    throw new ExpressError(`GoogleID ${storedGoogleID} does not match id in DB`)
+                }
+
+            } else {
+                throw new ExpressError(`Could not find user with google id ${storedGoogleID}`)
             }
 
-            else {
-                throw new ExpressError(`Incorrect passcode ${passcode} for email ${email}`)
-            }
 
-        } else {
-            throw new ExpressError(`No student with email address ${email} was found`)
+           
+
+           
+
         }
+
+        catch(err) 
+        {
+            res.status(404).json({message: `Could not find user with googleId ${storedGoogleID} `})
+
+        }
+
+
+        //If email/passcode
+       else if((storedEmail != null  && storedPasscode != null) || (storedEmail != undefined && storedPasscode != undefined  )) {
+
+            try{
+                //Find Student
+                let foundStudent = await studentModel.find({email:storedEmail});
+                
+                //If foundStudent exists
+                if(foundStudent.length > 0) {
+
+
+
+                    if(foundStudent[0].passcode === storedPasscode) {
+                        let email = foundStudent.email;
+                        let token = jwt.sign({email}, SECRET_KEY)
+                        console.log(token)
+                        console.log(foundStudent)
+                         res.status(200).json({token, foundStudent})
+                    }
+        
+                    else {
+                        throw new ExpressError(`Incorrect passcode ${passcode} for email ${email}`)
+                    }
+
+                }
+    
+
+
+            }
+
+            catch (err)
+
+            {res.status(404).json({message: `Could not match student with ${email}`})}
+            
+
+        }  else {
+            throw new ExpressError(`Could not match student with email and passcode `)
+
+        }
+        
+        
 
 
     }

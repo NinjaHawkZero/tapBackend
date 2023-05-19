@@ -308,6 +308,7 @@ router.get('/week/:_id', async (req, res) => {
 
 //Thumbs down on any question 3 days or more out of a week
 //Out of the past 5 days,  out of all questions answered, if 3 questions are answered false.
+//Sets flags based on counters.  Flags mean 3 or more days were missed for a category.  On FrontEnd deliver warning based on flag.  
 
 router.get('/studentTriggers1/:staffID', async (req, res) => {
     try {
@@ -323,24 +324,64 @@ router.get('/studentTriggers1/:staffID', async (req, res) => {
 
         let studentReviewPromises = foundStudents.map(async function(student) {
             let datesArray = getLastFiveWeekdays()
-            let tapInCounter = 0;
+            let didNotEatCounter = 0;
+            let didNotSleepCounter = 0;
+            let didNotFeelWellCounter = 0;
 
             let tapInPromises = datesArray.map(async function(date) {
                 let tapIns = await tapInModel.find({student:student._id, date: date});
 
                 tapIns.forEach(function(tapIn) {
-                    if(tapIn.wellBeing == false || tapIn.sleeping == false || tapIn.eating == false) {
-                        tapInCounter +=1;
+
+                    if(tapIn.eating == false ) {
+                        didNotEatCounter +=1;
                     }
+
+                    if(tapIn.sleeping == false) {
+                        didNotSleepCounter += 1;
+
+                    }
+
+                    if(tapIn.wellBeing == false) {
+
+                        didNotFeelWellCounter += 1;
+
+                    }
+
                 });
             });
 
             await Promise.all(tapInPromises);
 
-            if(tapInCounter >= 3) {
-                student.flagged = true;
-                return student;
+
+
+            if(didNotEatCounter >= 3) {
+
+
+                student.didEatFlag = "Did not eat 3/5 days.";               
+
             }
+
+
+            if(didNotSleepCounter >= 3) {
+
+
+                student.didSleepFlag = "Did not sleep 3/5 days.";               
+
+            }
+
+
+
+            if(didNotFeelWellCounter >= 3) {
+
+
+                student.wellBeingFlag = "Did not feel well 3/5 days.";               
+
+            }
+
+            return student
+
+
         });
 
         let studentReview = await Promise.all(studentReviewPromises);
@@ -417,6 +458,7 @@ router.get('/studentTriggers2/:staffID', async (req, res) => {
 
 //Thumbs down on any question 3 days in a row
 //Out of total questions answered last 3 days, if there was a question answered false at least once everyday.
+//Sets flags based on counters.  Flags mean 3 or more days were missed for a category.  On FrontEnd deliver warning based on flag.
 
 router.get('/studentTriggers3/:staffID', async (req, res) => {
     try {
@@ -431,25 +473,73 @@ router.get('/studentTriggers3/:staffID', async (req, res) => {
 
         let studentReviewPromises = foundStudents.map(async function(student) {
             let datesArray = getLastThreeWeekdaysString();
-            let tapInCounter = 0;
+            let didNotEatCounter = 0;
+            let didNotSleepCounter = 0;
+            let didNotFeelWellCounter = 0;
 
             let tapInPromises = datesArray.map(async function(date) {
                 let tapIns = await tapInModel.find({student:student._id, date: date});
 
                 tapIns.forEach(function(tapIn) {
-                    if(tapIn.wellBeing == false || tapIn.sleeping == false || tapIn.eating == false) {
-                        tapInCounter +=1;
+
+
+                    if(tapIn.eating == false ) {
+                        didNotEatCounter +=1;
                     }
+
+                    if(tapIn.sleeping == false) {
+                        didNotSleepCounter += 1;
+
+                    }
+
+                    if(tapIn.wellBeing == false) {
+
+                        didNotFeelWellCounter += 1;
+
+                    }
+
+
+
                 });
             });
 
             await Promise.all(tapInPromises);
 
-            if(tapInCounter >= 3) {
-                student.flagged = true;
-                return student;
+
+
+
+           
+            if(didNotEatCounter >= 3) {
+
+
+                student.didEatFlag = "Did not eat 3 days in a row.";               
+
             }
+
+
+            if(didNotSleepCounter >= 3) {
+
+
+                student.didSleepFlag = "Did not sleep 3 days in a row.";               
+
+            }
+
+
+
+            if(didNotFeelWellCounter >= 3) {
+
+
+                student.wellBeingFlag = "Did not feel well 3 days in a row.";               
+
+            }
+
+            return student
+
+
+
+
         });
+
 
         let studentReview = await Promise.all(studentReviewPromises);
 
@@ -480,19 +570,64 @@ router.get('/studentTriggers4/:staffID', async (req, res) => {
         let foundStudents = await Promise.all(foundStudentsPromises);
 
         let studentReviewPromises = foundStudents.map(async function(student) {
-            let tapInCounter = 0;
+            
+            let didNotEatCounter = 0;
+            let didNotSleepCounter = 0;
+            let didNotFeelWellCounter = 0;
             let todaysTapIns = await tapInModel.find({student: student._id, date: getDateString()});
 
             todaysTapIns.forEach(function(tapIn) {
-                if(tapIn.wellBeing == false || tapIn.sleeping == false || tapIn.eating == false) {
-                    tapInCounter +=1;
+
+
+
+                if(tapIn.eating == false ) {
+                    didNotEatCounter +=1;
                 }
+
+                if(tapIn.sleeping == false) {
+                    didNotSleepCounter += 1;
+
+                }
+
+                if(tapIn.wellBeing == false) {
+
+                    didNotFeelWellCounter += 1;
+
+                }
+
+
+
             });
 
-            if(tapInCounter >= 2) {
-                student.flagged = true
-                return student;
+
+            if(didNotEatCounter >= 3) {
+
+
+                student.didEatFlag = "Did not eat today.";               
+
             }
+
+
+            if(didNotSleepCounter >= 3) {
+
+
+                student.didSleepFlag = "Did not sleep today.";               
+
+            }
+
+
+
+            if(didNotFeelWellCounter >= 3) {
+
+
+                student.wellBeingFlag = "Did not feel well today";               
+
+            }
+
+            return student
+
+
+            
         });
 
         let studentReview = await Promise.all(studentReviewPromises);
@@ -1234,7 +1369,7 @@ router.post('/requestChat/:studentID', async (req, res) => {
         await meeting.save()
 
 
-        res.status(201).json({success: "You made the meeting!", meetingObj: meeting})
+        res.status(201).json({message: "You made the meeting!"})
     }
 
 catch(err)

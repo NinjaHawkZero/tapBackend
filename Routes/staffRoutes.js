@@ -63,19 +63,38 @@ const { classModel} = require("../ClassModel")
 
 router.post('/register', async (req,res) => {
     try{
-        let {schoolCode, name, title, password, email} = req.body;
+        let {schoolCode, name, title, password, email, googleId} = req.body;
+        let storedGoogleID = googleId;
+        let storedEmail = email;
+        let storedPassword = password;
+
+
+
+
         let foundSchool = await schoolModel.find({schoolCode: schoolCode});
-        let foundStaff = await staffModel.find({email: email});
 
         if(foundSchool.length > 0) {
-            if(foundStaff.length > 0) {
-                console.log(foundStaff[0])
-                throw new Error(`This email is already in use`);
-            }
-            else {
-                let schoolID = foundSchool[0]._id;
-                const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
-                let newStaffMember = await staffModel.create({schoolID: schoolID, schoolCode: schoolCode, name: name, password: hashedPassword, title: title, email: email });
+
+
+
+
+           ///// *******************************************************************
+            //If GoogleID Exists
+            if (storedGoogleID != null || storedGoogleID != undefined) {
+
+                try{
+
+                let foundStaff = await staffModel.find({googleId: storedGoogleID})
+
+
+
+                if(foundStaff.length > 0) {
+                    throw new ExpressError(`GoogleID already in use by another account`)
+                } else {
+                    //Create User
+                    let schoolID = foundSchool[0]._id;
+                    let newStaffMember = await staffModel.create({schoolID: schoolID, schoolCode: schoolCode, title: title, name: name, googleId: storedGoogleID});
+
 
                 if(newStaffMember.title.toLowerCase() === "teacher") {
                     try {
@@ -87,14 +106,88 @@ router.post('/register', async (req,res) => {
                         res.status(400).json({message: "Could not make classes"});
                     }
                 }
-                
+                    
+
+
                 const token = jwt.sign({ _id: newStaffMember._id }, SECRET_KEY);
                 res.status(201).json({staffMember: newStaffMember, token});
+
+                }
+
+
+                }
+
+                catch(err) {res.status(404).json({message: "Could not register user with GoogleId"})}
+
+
             }
-        }
-        else {
-            throw new Error(`Could not find school with SchoolCode ${schoolCode}`);
-        }
+
+            //******************************************************************************************* */
+
+
+
+
+
+            if ((storedEmail != null  && storedPassword != null) || (storedEmail != undefined && storedPassword != undefined  ))
+
+            {
+
+
+
+                try{
+
+
+                    let foundStaff = await staffModel.find({email: storedEmail});
+
+                    if(foundStaff.length > 0) {
+                        throw new ExpressError(`Staffmember with email ${storedEmail} already in use`)
+                    } else {
+
+
+                        let schoolID = foundSchool[0]._id;
+                        const hashedPassword = await bcrypt.hash(storedPassword, BCRYPT_WORK_FACTOR);
+                        let newStaffMember = await staffModel.create({schoolID: schoolID, schoolCode: schoolCode, name: name, password: hashedPassword, title: title, email: storedEmail });
+        
+                        if(newStaffMember.title.toLowerCase() === "teacher") {
+                            try {
+                                let classes = ["firstHour", "secondHour", "thirdHour", "fourthHour", "fifthHour", "sixthHour", "seventhHour", "eighthHour"];
+                                for(let i=0; i<8; i++) {
+                                    let newClass = await classModel.create({staffID: newStaffMember._id, schoolID: newStaffMember.schoolID, className: `Class ${i+1}`, hour: classes[i]});
+                                }
+                            } catch(err) {
+                                res.status(400).json({message: "Could not make classes"});
+                            }
+                        }
+                        
+                        const token = jwt.sign({ _id: newStaffMember._id }, SECRET_KEY);
+                        res.status(201).json({staffMember: newStaffMember, token});
+                    
+
+                    }
+
+
+
+
+
+                }        
+                
+                catch(err)
+                 {
+                    res.status(404).json({message: err.message})
+                }
+               
+
+            }
+
+
+
+
+
+        } else { throw new ExpressError(`No School Found with schoolCode ${schoolCode}`)}
+
+
+
+
     }
     catch(err) {
         res.status(400).json({message: err.message});
@@ -113,7 +206,48 @@ router.post('/register', async (req,res) => {
 //LOGIN STAFF
 router.post('/login', async (req, res) => {
     try {
-        let { password, email} = req.body;
+        let { password, email, googleId} = req.body;
+        let storedPassword = password;
+        let storedEmail = email;
+        let storedGoogleID = googleId
+
+
+
+
+        if (storedGoogleID != null || storedGoogleID != undefined)  {
+
+            try{
+                //try to find in db
+                let foundGoogleStaff = await schoolModel.find({googleId: storedGoogleID});
+
+                if(foundGoogleStaff.length > 0) {
+
+
+                    if(foundGoogleStaff[0].googleId === storedGoogleID) {
+                        let id = foundGoogleStaff[0].googleId;
+
+                        let token = jwt.sign({id}, SECRET_KEY);
+                        console.log(`this is the googletoken ${token}`)
+                      console.log('this is the google user')
+                      res.status(200).json({token, foundGoogleStaff})
+
+                    } else {throw new ExpressError("GoogleID doesn't match googleID in DB")}
+                }
+
+
+
+            }
+
+            catch(err)
+            {res.status(404).json({message: `Can't find student for GoogleID ${storedGoogleID}`})}
+
+        } else if ((storedEmail != null  && storedPassword != null) || (storedEmail != undefined && storedPassword != undefined  ) )
+
+
+        {
+
+
+
         let foundUser = await staffModel.find({email: email});
 
         if(foundUser.length > 0) {
@@ -133,6 +267,31 @@ router.post('/login', async (req, res) => {
         } else {
             throw new Error(`Could not find user with email ${email} in system`);
         }
+
+
+
+
+
+
+
+        } else {
+            throw new ExpressError("Could not match account info with user in DB")
+        }
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
     }
     catch(err) {
         res.status(400).json({message: err.message});

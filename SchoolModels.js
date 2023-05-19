@@ -19,6 +19,7 @@ const schoolSchema = new mongoose.Schema(
     adminTitle: String,
     adminName: String,
     password: String,
+    googleId: String,
     staff:[{type: mongoose.Schema.Types.ObjectId,ref:'Staff'}],
     students:[{type: mongoose.Schema.Types.ObjectId,ref:'Student'}],
     polls:[{type: mongoose.Schema.Types.ObjectId,ref:'Polls'}]
