@@ -1,4 +1,4 @@
-# TapIn
+# TapIn (Admin)
 
 TapIn Admin is a project designed for school administration and teachers to help track the attendance and wellbeing of students in class. Each teacher can keep track of their students for each period of the day, up to seven periods per day,  initiating and receiving results of a student survey (taken on student version of the app). These results are then presented to staff to help determine what areas of their mood or life they need help with from the teacher/administration.
 
